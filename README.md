@@ -15,30 +15,7 @@ It combines Solidity smart contracts, React frontend, Node.js backend, and an AI
 
 ✅ Dockerized setup for easy installation on any device.
 
-## 📂 Project Structure
-TrustChain/
-│── contracts/          # Solidity smart contracts
-│   └── --.sol
-│
-│── frontend/           # React frontend
-│   └── src/
-│       ├── components/
-│       ├── pages/
-│       └── App.js
-│
-│── backend/ (optional) # Node.js APIs
-│   └── index.js
-│
-│── ai-module/          # AI scripts
-│   └── verify_expiry.py
-│
-│── scripts/            # Deployment scripts
-│   └── deploy.js
-│
-│── docker-compose.yml  # Multi-container setup
-│── README.md
-
-##⚡ Installation & Setup
+## ⚡ Installation & Setup
  1. Clone Repository
 git clone https://github.com/<your-username>/TrustChain.git
 cd TrustChain
