@@ -72,14 +72,16 @@ Open a Pull Request on GitHub.
 
 ## 🤝 Team Members
 
-👤 Member 1
+## 🤝 Team Members
 
-👤 Member 2
+👤 [Member 1](https://github.com/HemeshKanyal) 
 
-👤 Member 3
+👤 [Member 2](https://github.com/Sanchay0123)  
 
-👤 Member 4
+👤 [Member 3](https://github.com/Priyanshu4-4)  
 
-👤 Member 5
+👤 [Member 4](https://github.com/username4)  
 
-👤 Member 6
+👤 [Member 5](https://github.com/username5)  
+
+👤 [Member 6](https://github.com/username6)  
