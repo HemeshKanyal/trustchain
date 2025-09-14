@@ -80,8 +80,8 @@ Open a Pull Request on GitHub.
 
 👤 [Member 3](https://github.com/Priyanshu4-4)  
 
-👤 [Member 4]()  
+👤 [Member 4](https://github.com/SAMYAALI-22)  
 
-👤 [Member 5]()  
+👤 [Member 5](https://github.com/sharmanaman20055-del)  
 
-👤 [Member 6]()  
+👤 [Member 6](https://github.com/Sachit315)  
