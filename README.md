@@ -72,8 +72,6 @@ Open a Pull Request on GitHub.
 
 ## 🤝 Team Members
 
-## 🤝 Team Members
-
 👤 [Member 1](https://github.com/HemeshKanyal) 
 
 👤 [Member 2](https://github.com/Sanchay0123)  
