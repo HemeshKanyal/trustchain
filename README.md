@@ -9,7 +9,7 @@ It combines Solidity smart contracts, React frontend, Node.js backend, and an AI
 
 ✅ Frontend (React) for interaction with users.
 
-✅ Backend (Node.js) for optional APIs.
+✅ Backend (Node.js) for optional APIs
 
 ✅ AI module (Python) for expiry & authenticity verification.
 
@@ -83,3 +83,4 @@ Open a Pull Request on GitHub.
 👤 [Member 5](https://github.com/sharmanaman20055-del)  
 
 👤 [Member 6](https://github.com/Sachit315)  
+
