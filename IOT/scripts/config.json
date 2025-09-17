@@ -1,0 +1,30 @@
+{
+  "batch_id": "BATCH001",
+  "interval_seconds": 3,
+
+  "route": [
+    [28.61, 77.21],
+    [25.45, 81.84],
+    [23.26, 77.41],
+    [21.15, 79.09],
+    [19.07, 72.87]
+  ],
+
+  "thresholds": {
+    "temperature": { "min": 15, "max": 25 },
+    "humidity": { "min": 45, "max": 70 }
+  },
+
+  "valid_rfids": [
+    "MED123456",
+    "MED987654",
+    "MED543210"
+  ],
+
+  "faults": {
+    "rfid_mismatch": false,
+    "temperature_spike": false,
+    "humidity_drop": false,
+    "gps_jump": false
+  }
+}
