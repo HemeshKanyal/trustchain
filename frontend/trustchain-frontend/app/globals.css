@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Fix Web3Modal / RainbowKit not showing in Firefox */
+body {
+  overflow: auto !important;     /* ensure scrolling allowed */
+}
+
+[data-rk] {
+  isolation: isolate;            /* fix stacking context issues */
+  z-index: 9999 !important;      /* force modal on top */
+}
+
+.web3modal-modal-lightbox {
+  position: fixed !important;
+  z-index: 99999 !important;
+  inset: 0 !important;           /* force it inside viewport */
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
