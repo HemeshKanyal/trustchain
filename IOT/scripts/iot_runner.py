@@ -1,115 +1,165 @@
 import argparse
 import json
-import random
-import time
-import hashlib
-import serial
-import sys
 import os
+import sys
+import time
+import datetime
+import serial
+import paho.mqtt.client as mqtt
 
-# ---------------- CONFIG ----------------
-DEFAULT_CONFIG = {
-    "batch_id": "BATCH001",
-    "temp_range": [2, 25],      # safe storage temp (°C)
-    "humidity_range": [30, 70], # safe humidity (%)
-    "gps_route": [
-        {"lat": 28.61, "lon": 77.21}, # Delhi
-        {"lat": 25.45, "lon": 81.84}, # Prayagraj
-        {"lat": 23.26, "lon": 77.41}, # Bhopal
-        {"lat": 19.07, "lon": 72.87}  # Mumbai
-    ],
-    "rfid_whitelist": ["MED123456", "MED987654", "MED543210"]
-}
+# ---------------------------
+# Globals
+# ---------------------------
+last_rfid = None
+last_gps = None
 
-# ---------------- Helper ----------------
-def calc_hash(data):
-    return hashlib.sha256(json.dumps(data).encode()).hexdigest()
-
-def validate(data, cfg):
-    flags = []
-    if "temperature" in data and not (cfg["temp_range"][0] <= data["temperature"] <= cfg["temp_range"][1]):
-        flags.append("TEMP_OUT_OF_RANGE")
-    if "humidity" in data and not (cfg["humidity_range"][0] <= data["humidity"] <= cfg["humidity_range"][1]):
-        flags.append("HUMIDITY_OUT_OF_RANGE")
-    if "rfid_tag" in data and data["rfid_tag"] not in cfg["rfid_whitelist"]:
-        flags.append("INVALID_RFID")
-    return flags
-
-# ---------------- Emulator ----------------
-def run_emulator(cfg):
-    print("🚀 IoT Emulator Started. Logging to: logs/iot_logs.jsonl")
+# ---------------------------
+# Logging setup
+# ---------------------------
+def get_log_file():
+    """Return today's log file path inside logs/ directory."""
+    today = datetime.date.today().isoformat()
     os.makedirs("logs", exist_ok=True)
-    with open("logs/iot_logs.jsonl", "a") as f:
-        while True:
-            sensor = {
-                "batch_id": cfg["batch_id"],
-                "timestamp": time.time(),
-                "rfid_tag": random.choice(cfg["rfid_whitelist"]),
-                "temperature": round(random.uniform(15, 30), 2),
-                "humidity": round(random.uniform(40, 80), 2),
-                "gps": random.choice(cfg["gps_route"])
-            }
-            sensor["hash"] = calc_hash(sensor)
-            flags = validate(sensor, cfg)
-            sensor["flags"] = flags
+    return os.path.join("logs", f"{today}.log")
 
-            print("📡 Emulator Data:", json.dumps(sensor, indent=2))
-            f.write(json.dumps(sensor) + "\n")
-            f.flush()
-            time.sleep(3)
+def append_log(entry: dict):
+    """Append a JSON entry to the daily log file."""
+    with open(get_log_file(), "a") as f:
+        f.write(json.dumps(entry) + "\n")
 
-# ---------------- Hardware ----------------
-def run_hardware(cfg, port):
+# ---------------------------
+# Fault Detection
+# ---------------------------
+def detect_faults(data: dict) -> dict:
+    faults = {}
     try:
-        ser = serial.Serial(port, 9600, timeout=1)
-        print(f"✅ Connected to hardware on {port}")
+        temp = data.get("temperature")
+        hum = data.get("humidity")
+
+        faults["temperature_high"] = temp is not None and temp > 50
+        faults["temperature_low"] = temp is not None and temp < -10
+        faults["humidity_high"] = hum is not None and hum > 90
+        faults["humidity_low"] = hum is not None and hum < 10
+
     except Exception as e:
-        print(f"❌ Could not open {port}: {e}")
-        sys.exit(1)
+        print(f"⚠️ Fault detection error: {e}")
+    return faults
 
-    os.makedirs("logs", exist_ok=True)
-    with open("logs/iot_hardware_logs.jsonl", "a") as f:
+# ---------------------------
+# Data Cleaning
+# ---------------------------
+def clean_and_log(data: dict):
+    global last_rfid, last_gps
+
+    # Use last valid RFID if current is missing
+    if data.get("rfid_tag"):
+        last_rfid = data["rfid_tag"]
+    else:
+        data["rfid_tag"] = last_rfid
+
+    # Use last valid GPS if current is missing or invalid
+    gps = data.get("gps")
+    if gps and gps.get("lat") != 0.0 and gps.get("lon") != 0.0:
+        last_gps = gps
+    else:
+        data["gps"] = last_gps
+
+    # Add timestamp
+    data["logged_at"] = datetime.datetime.utcnow().isoformat()
+
+    # Run fault detection
+    data["faults"] = detect_faults(data)
+
+    # Print and log
+    print(f"📥 Data: {data}")
+    append_log(data)
+
+# ---------------------------
+# Hardware Mode
+# ---------------------------
+def run_hardware(config, port, baud):
+    try:
+        ser = serial.Serial(port, baud, timeout=1)
+        print(f"✅ Connected to IoT hardware on {port} at {baud} baud")
+    except Exception as e:
+        print(f"❌ Could not open serial port: {e}")
+        return
+
+    buffer = ""
+    try:
         while True:
-            try:
-                line = ser.readline().decode("utf-8").strip()
-                if not line:
-                    continue
-                if line.startswith("{") and line.endswith("}"):
+            line = ser.readline().decode(errors="ignore").strip()
+            if not line:
+                continue
+
+            # Try parse JSON directly
+            if line.startswith("{") and line.endswith("}"):
+                try:
                     data = json.loads(line)
-                    data["batch_id"] = cfg["batch_id"]
-                    data["timestamp"] = time.time()
-                    data["hash"] = calc_hash(data)
-                    data["flags"] = validate(data, cfg)
+                    clean_and_log(data)
+                except Exception as e:
+                    print(f"⚠️ Failed to parse JSON: {e} | line: {line}")
+                continue
 
-                    print("📡 Hardware Data:", json.dumps(data, indent=2))
-                    f.write(json.dumps(data) + "\n")
-                    f.flush()
+            # Otherwise, try extract JSON chunks
+            buffer += line
+            if "{" in buffer and "}" in buffer:
+                start = buffer.find("{")
+                end = buffer.find("}", start)
+                if end != -1:
+                    chunk = buffer[start:end+1]
+                    buffer = buffer[end+1:]
+                    try:
+                        data = json.loads(chunk)
+                        clean_and_log(data)
+                    except Exception as e:
+                        print(f"⚠️ Failed to parse JSON chunk: {e} | chunk: {chunk}")
+            else:
+                print(f"🔎 NMEA: {line}")
 
-                    # 🔗 TODO: send to backend / blockchain
-                else:
-                    print("🔎 Raw:", line)
+    except KeyboardInterrupt:
+        print("\n⏹️ IoT runner stopped manually")
+    finally:
+        ser.close()
 
-            except KeyboardInterrupt:
-                print("\n🛑 Stopped by user")
-                break
-            except Exception as e:
-                print("⚠️ Error:", e)
-                time.sleep(1)
-    ser.close()
+# ---------------------------
+# Simulated Mode
+# ---------------------------
+def run_simulated(config):
+    import random
+    global last_rfid, last_gps
+    last_rfid = None
+    last_gps = None
 
-# ---------------- Main ----------------
+    try:
+        while True:
+            data = {
+                "rfid_tag": random.choice([None, "SIM123", "SIM456"]),
+                "temperature": round(random.uniform(15, 40), 2),
+                "humidity": round(random.uniform(20, 80), 2),
+                "gps": {
+                    "lat": round(random.uniform(-90, 90), 6),
+                    "lon": round(random.uniform(-180, 180), 6)
+                }
+            }
+            clean_and_log(data)
+            time.sleep(2)
+    except KeyboardInterrupt:
+        print("\n⏹️ IoT runner stopped manually")
+
+# ---------------------------
+# Main Entrypoint
+# ---------------------------
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--mode", choices=["emulator", "hardware"], required=True, help="Run mode")
-    parser.add_argument("--port", help="Serial port for hardware (e.g., COM3, /dev/ttyUSB0)")
+    parser.add_argument("--mode", choices=["hardware", "simulated"], required=True)
+    parser.add_argument("--port", help="Serial port for hardware mode")
+    parser.add_argument("--baud", type=int, default=115200)
     args = parser.parse_args()
 
-    cfg = DEFAULT_CONFIG
+    config = {}  # later can load from config.json if needed
 
-    if args.mode == "emulator":
-        run_emulator(cfg)
-    elif args.mode == "hardware":
-        if not args.port:
-            print("❌ You must provide --port for hardware mode")
-            sys.exit(1)
-        run_hardware(cfg, args.port)
+    if args.mode == "hardware":
+        run_hardware(config, args.port, args.baud)
+    else:
+        run_simulated(config)
