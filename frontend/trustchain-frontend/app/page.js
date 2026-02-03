@@ -1,71 +1,248 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAccount, useReadContract } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { motion } from "framer-motion";
+import { ShieldCheck, Pill, Truck, Search, Activity, User } from "lucide-react";
+import Link from "next/link";
+import { useReadContract } from "wagmi";
 import AdminABI from "../contracts/Admin.json";
 import { CONTRACT_ADDRESSES } from "../contracts/addresses";
 
-export default function Home() {
-  const { address, isConnected } = useAccount();
+export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
   const [checkAddress, setCheckAddress] = useState("");
+  const [isScrolled, setIsScrolled] = useState(false);
 
-  // ✅ Fix hydration issue
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-  // ✅ Always call hook (safe default arg prevents crash)
+  // Verification Logic
   const { data: isApproved, isLoading, error } = useReadContract({
     abi: AdminABI,
     address: CONTRACT_ADDRESSES.admin,
     functionName: "approvedManufacturers",
     args: [
       checkAddress && checkAddress.length === 42
-        ? checkAddress
+        ? checkAddress.trim()
         : "0x0000000000000000000000000000000000000000",
     ],
   });
 
-  if (!mounted) {
-    // ✅ Prevent white page → show fallback
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-900 text-white">
-        <h1 className="text-xl animate-pulse">Loading TrustChain...</h1>
-      </div>
-    );
-  }
+  if (!mounted) return null;
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white space-y-6">
-      <h1 className="text-3xl font-bold">🚀 TrustChain</h1>
-      <ConnectButton />
+    <div className="min-h-screen bg-space-blue-900 text-white font-sans selection:bg-electric-blue selection:text-white overflow-hidden">
 
-      {isConnected && (
-        <div className="bg-gray-800 p-4 rounded-xl space-y-3 w-96">
-          <p>Your wallet: {address}</p>
-          <input
-            type="text"
-            placeholder="Enter manufacturer address"
-            className="w-full px-2 py-1 text-black rounded"
-            value={checkAddress}
-            onChange={(e) => setCheckAddress(e.target.value)}
-          />
+      {/* 🔹 Navigation Bar */}
+      <nav
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-space-blue-900/80 backdrop-blur-md shadow-lg" : "bg-transparent"
+          }`}
+      >
+        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 bg-gradient-to-br from-electric-blue to-vivid-purple rounded-xl flex items-center justify-center shadow-lg shadow-electric-blue/20">
+              <ShieldCheck className="text-white w-6 h-6" />
+            </div>
+            <span className="text-2xl font-bold font-heading tracking-tight">TrustChain</span>
+          </div>
 
-          <button
-            className="bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded w-full"
-            disabled={!checkAddress || checkAddress.length !== 42}
-          >
-            {isLoading ? "Checking..." : "Check Manufacturer Approval"}
-          </button>
+          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
+            <a href="#features" className="hover:text-white transition-colors">Features</a>
+            <a href="#verify" className="hover:text-white transition-colors">Verify</a>
+            <a href="#network" className="hover:text-white transition-colors">Network</a>
+          </div>
 
-          {error && <p className="text-red-400">⚠️ Error: {error.message}</p>}
-          {checkAddress && checkAddress.length === 42 && isApproved !== undefined && (
-            <p className="mt-2">
-              ✅ Approved? {isApproved ? "Yes" : "No"}
-            </p>
-          )}
+          <ConnectButton.Custom>
+            {({ account, chain, openAccountModal, openConnectModal, mounted }) => {
+              const ready = mounted;
+              const connected = ready && account && chain;
+              return (
+                <div
+                  {...(!ready && {
+                    "aria-hidden": true,
+                    style: { opacity: 0, pointerEvents: "none", userSelect: "none" },
+                  })}
+                >
+                  {(() => {
+                    if (!connected) {
+                      return (
+                        <button onClick={openConnectModal} className="px-5 py-2.5 bg-electric-blue hover:bg-blue-600 rounded-lg text-white font-medium transition-all shadow-lg shadow-blue-500/25">
+                          Connect Wallet
+                        </button>
+                      );
+                    }
+                    return (
+                      <button onClick={openAccountModal} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg backdrop-blur-md border border-white/5 transition-all">
+                        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+                        {account.displayName}
+                      </button>
+                    );
+                  })()}
+                </div>
+              );
+            }}
+          </ConnectButton.Custom>
         </div>
-      )}
+      </nav>
+
+      {/* 🔹 Hero Section */}
+      <section className="relative pt-32 pb-20 px-6 max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
+        <div className="relative z-10 md:w-1/2 space-y-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-vivid-purple/10 border border-vivid-purple/20 text-vivid-purple text-sm font-medium mb-6">
+              <span className="flex h-2 w-2 rounded-full bg-vivid-purple"></span>
+              Live on Chain (Hardhat/Local)
+            </div>
+            <h1 className="text-5xl md:text-7xl font-bold font-heading leading-tight mb-6">
+              The Future of <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-electric-blue to-vivid-purple">
+                Pharma Trust
+              </span>
+            </h1>
+            <p className="text-lg text-gray-400 max-w-lg leading-relaxed">
+              Eliminate counterfeits with an immutable, blockchain-powered supply chain. Track medicine from manufacturer to patient in real-time.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="flex flex-wrap gap-4"
+          >
+            <Link href="/manufacturer" className="px-8 py-4 bg-white text-space-blue-900 font-bold rounded-xl hover:bg-gray-100 transition-all shadow-xl shadow-white/5">
+              Start Dashboard
+            </Link>
+            <a href="#verify" className="px-8 py-4 bg-transparent border border-white/10 rounded-xl hover:bg-white/5 transition-all text-white font-medium">
+              Verify Product
+            </a>
+          </motion.div>
+        </div>
+
+        {/* 3D/Graphic Placeholder - Using CSS Shapes for now */}
+        <div className="md:w-1/2 relative h-[500px] w-full flex items-center justify-center">
+          <div className="absolute inset-0 bg-gradient-to-tr from-electric-blue/20 to-vivid-purple/20 rounded-full blur-[100px]" />
+          <motion.div
+            animate={{ y: [0, -20, 0] }}
+            transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+            className="relative z-10 glass p-8 rounded-3xl border border-white/20 w-80 shadow-2xl"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <div className="h-3 w-20 bg-gray-600/50 rounded-full" />
+              <div className="h-8 w-8 rounded-full bg-green-500/20 flex items-center justify-center">
+                <ShieldCheck className="w-4 h-4 text-green-400" />
+              </div>
+            </div>
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5">
+                  <div className="w-10 h-10 rounded-lg bg-electric-blue/20 flex items-center justify-center">
+                    <Pill className="text-electric-blue w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="h-2 w-24 bg-gray-500/50 rounded mb-2" />
+                    <div className="h-2 w-16 bg-gray-600/50 rounded" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* 🔹 How it Works */}
+      <section id="network" className="py-20 px-6 max-w-7xl mx-auto">
+        <h2 className="text-3xl md:text-4xl font-bold font-heading text-center mb-16">
+          <span className="text-gray-500 font-normal text-xl block mb-2">The Ecocsystem</span>
+          End-to-End Visibility
+        </h2>
+
+        <div className="grid md:grid-cols-4 gap-6">
+          {[
+            { title: "Manufacturer", icon: Activity, desc: "Create & Tag Batches" },
+            { title: "Distributor", icon: Truck, desc: "Secure Transport" },
+            { title: "Pharmacy", icon: ShieldCheck, desc: "Verify & Dispense" },
+            { title: "Patient", icon: User, desc: "Scan & Confirm" },
+          ].map((item, idx) => (
+            <div key={idx} className="glass p-6 rounded-2xl flex flex-col items-center text-center hover:bg-white/10 transition-all cursor-default">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center mb-6 shadow-inner border border-white/5">
+                <item.icon className="w-8 h-8 text-electric-blue" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">{item.title}</h3>
+              <p className="text-gray-400 text-sm">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 🔹 Verification Tool */}
+      <section id="verify" className="py-20 px-6 max-w-4xl mx-auto">
+        <div className="glass p-8 md:p-12 rounded-3xl border border-white/10 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-32 bg-electric-blue/10 bg-blur-[100px] rounded-full pointer-events-none" />
+
+          <div className="text-center mb-10">
+            <h2 className="text-3xl font-bold font-heading mb-4">Verify Authenticity</h2>
+            <p className="text-gray-400">Enter a manufacturer address to check their approval status on the blockchain.</p>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-4 max-w-xl mx-auto">
+            <div className="relative flex-grow">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="0x..."
+                value={checkAddress}
+                onChange={(e) => setCheckAddress(e.target.value)}
+                className="w-full bg-space-blue-800 text-white pl-12 pr-4 py-4 rounded-xl border border-gray-700 focus:border-electric-blue focus:ring-1 focus:ring-electric-blue outline-none transition-all placeholder:text-gray-600 font-mono"
+              />
+            </div>
+          </div>
+
+          <div className="mt-8 flex justify-center">
+            {checkAddress && checkAddress.length === 42 ? (
+              isLoading ? (
+                <div className="flex items-center gap-2 text-electric-blue animate-pulse">
+                  <Activity className="w-5 h-5" /> verifyng on-chain...
+                </div>
+              ) : (
+                <div className={`flex items-center gap-3 px-6 py-3 rounded-full border ${isApproved ? "bg-green-500/10 border-green-500/50 text-green-400" : "bg-red-500/10 border-red-500/50 text-red-400"}`}>
+                  {isApproved ? (
+                    <>
+                      <ShieldCheck className="w-5 h-5" />
+                      <span className="font-bold">Authorized Manufacturer</span>
+                    </>
+                  ) : (
+                    <>
+                      <ShieldCheck className="w-5 h-5" />
+                      <span className="font-bold">Not Authorized / Unknown</span>
+                    </>
+                  )}
+                </div>
+              )
+            ) : (
+              <p className="text-sm text-gray-600">Enter a valid Ethereum address (42 characters)</p>
+            )}
+
+            {error && (
+              <p className="text-red-400 text-sm mt-4 text-center">Error connecting to network: {error.message}</p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* 🔹 Footer */}
+      <footer className="py-10 border-t border-white/5 text-center text-gray-500 text-sm">
+        <p>&copy; {new Date().getFullYear()} TrustChain. Built for the future.</p>
+      </footer>
     </div>
   );
 }
