@@ -117,13 +117,13 @@ export default function LandingPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="flex flex-wrap gap-4"
+            className="flex flex-col sm:flex-row gap-4"
           >
-            <Link href="/manufacturer" className="px-8 py-4 bg-white text-space-blue-900 font-bold rounded-xl hover:bg-gray-100 transition-all shadow-xl shadow-white/5">
-              Start Dashboard
+            <Link href="/patient" className="px-8 py-4 bg-gradient-to-r from-electric-blue to-blue-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all text-center">
+              I am a Patient
             </Link>
-            <a href="#verify" className="px-8 py-4 bg-transparent border border-white/10 rounded-xl hover:bg-white/5 transition-all text-white font-medium">
-              Verify Product
+            <a href="#network" className="px-8 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-xl hover:bg-white/10 transition-all text-center">
+              Supply Chain Partner
             </a>
           </motion.div>
         </div>
@@ -161,26 +161,35 @@ export default function LandingPage() {
 
       {/* 🔹 How it Works */}
       <section id="network" className="py-20 px-6 max-w-7xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold font-heading text-center mb-16">
-          <span className="text-gray-500 font-normal text-xl block mb-2">The Ecocsystem</span>
-          End-to-End Visibility
-        </h2>
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-4xl font-bold font-heading mb-4">
+            Select Your Role
+          </h2>
+          <p className="text-gray-400">Access your designated supply chain portal.</p>
+        </div>
 
         <div className="grid md:grid-cols-4 gap-6">
           {[
-            { title: "Manufacturer", icon: Activity, desc: "Create & Tag Batches" },
-            { title: "Distributor", icon: Truck, desc: "Secure Transport" },
-            { title: "Pharmacy", icon: ShieldCheck, desc: "Verify & Dispense" },
-            { title: "Patient", icon: User, desc: "Scan & Confirm" },
+            { title: "Manufacturer", icon: Activity, desc: "Create & Tag Batches", link: "/manufacturer" },
+            { title: "Distributor", icon: Truck, desc: "Secure Transport", link: "/distributor" },
+            { title: "Pharmacy", icon: ShieldCheck, desc: "Verify & Dispense", link: "/pharmacy" },
+            { title: "Doctor", icon: User, desc: "Prescribe & Monitor", link: "/doctor" },
           ].map((item, idx) => (
-            <div key={idx} className="glass p-6 rounded-2xl flex flex-col items-center text-center hover:bg-white/10 transition-all cursor-default">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center mb-6 shadow-inner border border-white/5">
-                <item.icon className="w-8 h-8 text-electric-blue" />
+            <Link key={idx} href={item.link} className="glass p-6 rounded-2xl flex flex-col items-center text-center hover:bg-white/10 hover:scale-105 transition-all cursor-pointer border border-white/5 group">
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center mb-6 shadow-inner border border-white/5 group-hover:border-electric-blue/50 transition-colors">
+                <item.icon className="w-8 h-8 text-electric-blue group-hover:text-white transition-colors" />
               </div>
               <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-              <p className="text-gray-400 text-sm">{item.desc}</p>
-            </div>
+              <p className="text-gray-400 text-sm group-hover:text-gray-300">{item.desc}</p>
+            </Link>
           ))}
+        </div>
+
+        {/* Admin Link (Discrete) */}
+        <div className="mt-12 text-center">
+          <Link href="/admin" className="text-xs text-gray-600 hover:text-gray-400 transition-colors">
+            Authorized Admin Access
+          </Link>
         </div>
       </section>
 
