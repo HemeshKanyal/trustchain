@@ -6,8 +6,8 @@ import { motion } from "framer-motion";
 import { ShieldCheck, Pill, Truck, Search, Activity, User } from "lucide-react";
 import Link from "next/link";
 import { useReadContract } from "wagmi";
-import AdminABI from "../contracts/Admin.json";
-import { CONTRACT_ADDRESSES } from "../contracts/addresses";
+import AdminABI from "../contracts-data/Admin.json";
+import { CONTRACT_ADDRESSES } from "../contracts-data/addresses";
 
 export default function LandingPage() {
   const [mounted, setMounted] = useState(false);
@@ -22,16 +22,21 @@ export default function LandingPage() {
   }, []);
 
   // Verification Logic
-  const { data: isApproved, isLoading, error } = useReadContract({
+  // Verification Logic: Check if user is a registered Manufacturer (Role index 2)
+  const { data: userProfile, isLoading, error } = useReadContract({
     abi: AdminABI,
     address: CONTRACT_ADDRESSES.admin,
-    functionName: "approvedManufacturers",
+    functionName: "users",
     args: [
       checkAddress && checkAddress.length === 42
         ? checkAddress.trim()
         : "0x0000000000000000000000000000000000000000",
     ],
   });
+
+  // userProfile returns [name, role, wallet, isRegistered, location]
+  // Role enum: None(0), Admin(1), Manufacturer(2), Distributor(3), Pharmacy(4), Doctor(5), Patient(6)
+  const isApproved = userProfile && Number(userProfile[1]) === 2 && userProfile[3];
 
   if (!mounted) return null;
 

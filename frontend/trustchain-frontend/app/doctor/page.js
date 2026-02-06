@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAccount, useWriteContract, useReadContract } from "wagmi";
+import { useAccount, useWriteContract, useReadContract, usePublicClient } from "wagmi";
 import {
   Stethoscope,
   FileSignature,
@@ -13,13 +13,14 @@ import {
   FileX
 } from "lucide-react";
 import DashboardLayout from "../../components/DashboardLayout";
-import DoctorRegistryABI from "../../contracts/DoctorRegistry.json";
-import PrescriptionABI from "../../contracts/Prescription.json";
-import { CONTRACT_ADDRESSES } from "../../contracts/addresses";
+import DoctorRegistryABI from "../../contracts-data/DoctorRegistry.json"; // This is actually Unified ABI now
+import PrescriptionABI from "../../contracts-data/Prescription.json"; // This is also Unified ABI
+import { CONTRACT_ADDRESSES } from "../../contracts-data/addresses";
 
 export default function DoctorDashboard() {
   const { address, isConnected } = useAccount();
   const { writeContractAsync } = useWriteContract();
+  const publicClient = usePublicClient();
   const [mounted, setMounted] = useState(false);
   const [activeTab, setActiveTab] = useState("PRESCRIPTIONS"); // PRESCRIPTIONS | PROFILE | CHECK
 
@@ -31,19 +32,18 @@ export default function DoctorDashboard() {
   useEffect(() => setMounted(true), []);
 
   // Contract Reads
-  const { data: doctorInfo } = useReadContract({
+  // Check User Status using the 'users' mapping
+  const { data: userData } = useReadContract({
     abi: DoctorRegistryABI,
     address: CONTRACT_ADDRESSES.doctorRegistry,
-    functionName: "getDoctor",
+    functionName: "users",
     args: address ? [address] : undefined,
   });
 
-  const { data: isApproved } = useReadContract({
-    abi: DoctorRegistryABI,
-    address: CONTRACT_ADDRESSES.doctorRegistry,
-    functionName: "isApprovedDoctor",
-    args: address ? [address] : undefined,
-  });
+  // userData: [name, role, wallet, isRegistered, location]
+  // Role 5 is Doctor
+  const isApproved = userData && Number(userData[1]) === 5 && userData[3];
+  const registeredName = userData ? userData[0] : "Not Registered";
 
   const { data: presData, refetch: fetchPrescription } = useReadContract({
     abi: PrescriptionABI,
@@ -68,40 +68,51 @@ export default function DoctorDashboard() {
       await writeContractAsync({
         abi: DoctorRegistryABI,
         address: CONTRACT_ADDRESSES.doctorRegistry,
-        functionName: "applyAsDoctor",
-        args: [profileForm.name, profileForm.license],
+        functionName: "registerUser",
+        // Note: In Unified contract, typically Admin registers users.
+        // If there's no self-register function exposed, this will fail or strictly require Admin key.
+        // Assuming we just warn the user.
+        args: [address, profileForm.name || "Doctor", 5, profileForm.license || "Licensed"],
       });
-      alert("✅ Application Submitted");
+      alert("✅ Request Sent (If you are Admin). Otherwise ask Admin to register you.");
     } catch (err) {
-      alert("Error: " + err.message);
+      alert("⚠️ Application Failed (Likely requires Admin): " + err.message);
     }
   };
 
   const handleUpdate = async () => {
-    try {
-      await writeContractAsync({
-        abi: DoctorRegistryABI,
-        address: CONTRACT_ADDRESSES.doctorRegistry,
-        functionName: "updateDoctorDetails",
-        args: [profileForm.name, profileForm.license],
-      });
-      alert("✏️ Details Updated");
-    } catch (err) {
-      alert("Error: " + err.message);
-    }
+    alert("Update feature pending contract support.");
   }
 
   const handleCreatePrescription = async () => {
     try {
-      await writeContractAsync({
+      const hash = await writeContractAsync({
         abi: PrescriptionABI,
         address: CONTRACT_ADDRESSES.prescription,
         functionName: "createPrescription",
         args: [prescriptionForm.patientAddr, prescriptionForm.medsHash],
       });
-      alert("📝 Prescription Issued on Chain");
+
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+
+      // Parse logs to find PrescriptionCreated event
+      // Event Signature: PrescriptionCreated(uint256 indexed id, address indexed patient, address indexed doctor)
+      // The ID is the first indexed argument (topic[1])
+
+      let newId = "Check Last ID";
+
+      // Look for a log with 4 topics (Signature + 3 indexed params)
+      const eventLog = receipt.logs.find(l => l.topics.length === 4);
+
+      if (eventLog) {
+        // topic[1] is the ID in hex
+        newId = parseInt(eventLog.topics[1], 16);
+      }
+
+      alert(`📝 Prescription Issued! ID: ${newId}`);
       setPrescriptionForm({ patientAddr: "", medsHash: "" });
     } catch (err) {
+      console.error(err);
       alert("Error: " + err.message);
     }
   }
@@ -150,7 +161,7 @@ export default function DoctorDashboard() {
               <div>
                 <p className="text-sm text-gray-400 mb-1">Registered Name</p>
                 <h3 className="text-xl font-bold text-white">
-                  {doctorInfo?.name || "Not Registered"}
+                  {registeredName}
                 </h3>
               </div>
             </div>
@@ -167,8 +178,8 @@ export default function DoctorDashboard() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab.id
-                    ? "bg-electric-blue text-white shadow-lg shadow-electric-blue/20"
-                    : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                  ? "bg-electric-blue text-white shadow-lg shadow-electric-blue/20"
+                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
                   }`}
               >
                 <tab.icon className="w-4 h-4" />
@@ -201,7 +212,7 @@ export default function DoctorDashboard() {
                     onClick={handleApply}
                     className="w-full py-3 bg-blue-500 rounded-xl font-bold text-white hover:bg-blue-600 transition-all"
                   >
-                    Apply
+                    Apply (Admin Only)
                   </button>
                   <button
                     onClick={handleUpdate}

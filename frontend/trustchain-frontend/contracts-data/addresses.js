@@ -1,0 +1,13 @@
+// contracts/addresses.js
+
+export const CONTRACT_ADDRESSES = {
+  admin: "0x9D5153c6DA1b3d3d6B0a4B4388c4BC3d48c0afA6",
+  manufacturer: "0x9D5153c6DA1b3d3d6B0a4B4388c4BC3d48c0afA6",
+  distributor: "0x9D5153c6DA1b3d3d6B0a4B4388c4BC3d48c0afA6",
+  pharmacy: "0x9D5153c6DA1b3d3d6B0a4B4388c4BC3d48c0afA6",
+  doctor: "0x9D5153c6DA1b3d3d6B0a4B4388c4BC3d48c0afA6",
+  patient: "0x9D5153c6DA1b3d3d6B0a4B4388c4BC3d48c0afA6",
+  prescription: "0x9D5153c6DA1b3d3d6B0a4B4388c4BC3d48c0afA6",
+  doctorRegistry: "0x9D5153c6DA1b3d3d6B0a4B4388c4BC3d48c0afA6",
+  iot: "0x9D5153c6DA1b3d3d6B0a4B4388c4BC3d48c0afA6"
+};

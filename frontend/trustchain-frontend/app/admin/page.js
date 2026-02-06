@@ -5,8 +5,8 @@ import { useAccount, useWriteContract, useReadContract } from "wagmi";
 import { motion } from "framer-motion";
 import { ShieldCheck, UserCheck, UserX, AlertCircle, CheckCircle, Search, Activity, Trash2, Plus } from "lucide-react";
 import DashboardLayout from "../../components/DashboardLayout";
-import AdminABI from "../../contracts/Admin.json";
-import { CONTRACT_ADDRESSES } from "../../contracts/addresses";
+import AdminABI from "../../contracts-data/Admin.json";
+import { CONTRACT_ADDRESSES } from "../../contracts-data/addresses";
 
 export default function AdminPage() {
   const { address, isConnected } = useAccount();
@@ -25,23 +25,38 @@ export default function AdminPage() {
       return;
     }
 
-    let functionName = "";
-    const roleCapitalized = activeTab.charAt(0).toUpperCase() + activeTab.slice(1).toLowerCase(); // Manufacturer
+    const roleMap = {
+      "MANUFACTURER": 2,
+      "DISTRIBUTOR": 3,
+      "PHARMACY": 4,
+      "DOCTOR": 5
+    };
 
-    if (actionType === "approve") functionName = `approve${roleCapitalized}`;
-    if (actionType === "revoke") functionName = `revoke${roleCapitalized}`;
-
-    // Special mapping if needed, but standard naming seems to be approveManufacturer, etc.
-    // Based on previous code: approveManufacturer, revokeManufacturer, etc.
+    const roleEnum = roleMap[activeTab];
+    if (!roleEnum) {
+      alert("Invalid Role Selected");
+      return;
+    }
 
     try {
-      await writeContractAsync({
-        abi: AdminABI,
-        address: CONTRACT_ADDRESSES.admin,
-        functionName: functionName,
-        args: [targetAddress],
-      });
-      alert(`Transaction Submitted: ${functionName}`);
+      if (actionType === "approve") {
+        // registerUser(address, name, role, location)
+        await writeContractAsync({
+          abi: AdminABI,
+          address: CONTRACT_ADDRESSES.admin,
+          functionName: "registerUser",
+          args: [targetAddress, `Approved ${activeTab}`, roleEnum, "System Registered"],
+        });
+        alert(`User Registered as ${activeTab}`);
+      } else if (actionType === "revoke") {
+        await writeContractAsync({
+          abi: AdminABI,
+          address: CONTRACT_ADDRESSES.admin,
+          functionName: "revokeUser",
+          args: [targetAddress],
+        });
+        alert(`User Revoked from ${activeTab}`);
+      }
     } catch (err) {
       console.error(err);
       alert(`Error: ${err.message}`);

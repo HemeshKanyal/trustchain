@@ -13,8 +13,8 @@ import {
   AlertCircle
 } from "lucide-react";
 import DashboardLayout from "../../components/DashboardLayout";
-import DistributorABI from "../../contracts/Distributor.json";
-import { CONTRACT_ADDRESSES } from "../../contracts/addresses";
+import DistributorABI from "../../contracts-data/Distributor.json";
+import { CONTRACT_ADDRESSES } from "../../contracts-data/addresses";
 
 export default function DistributorDashboard() {
   const { address, isConnected } = useAccount();
@@ -141,8 +141,8 @@ export default function DistributorDashboard() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab.id
-                    ? "bg-electric-blue text-white shadow-lg shadow-electric-blue/20"
-                    : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                  ? "bg-electric-blue text-white shadow-lg shadow-electric-blue/20"
+                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
                   }`}
               >
                 <tab.icon className="w-4 h-4" />

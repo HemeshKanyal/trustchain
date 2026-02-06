@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useAccount, useWriteContract, useReadContract } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import IoTABI from "../../contracts/IoTTracker.json";
+import IoTABI from "../../contracts-data/IoTTracker.json";
 import { CONTRACT_ADDRESSES } from "../../contracts/addresses";
 import {
   LineChart,
@@ -66,10 +66,10 @@ export default function IoTDashboard() {
   // Prepare chart data
   const chartData = logs
     ? logs.map((log) => ({
-        timestamp: new Date(Number(log.timestamp) * 1000).toLocaleTimeString(),
-        temperature: Number(log.temperature),
-        humidity: Number(log.humidity),
-      }))
+      timestamp: new Date(Number(log.timestamp) * 1000).toLocaleTimeString(),
+      temperature: Number(log.temperature),
+      humidity: Number(log.humidity),
+    }))
     : [];
 
   return (

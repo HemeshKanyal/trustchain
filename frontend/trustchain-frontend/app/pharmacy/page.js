@@ -13,8 +13,8 @@ import {
   AlertCircle
 } from "lucide-react";
 import DashboardLayout from "../../components/DashboardLayout";
-import PharmacyABI from "../../contracts/Pharmacy.json";
-import { CONTRACT_ADDRESSES } from "../../contracts/addresses";
+import PharmacyABI from "../../contracts-data/Pharmacy.json";
+import { CONTRACT_ADDRESSES } from "../../contracts-data/addresses";
 
 export default function PharmacyDashboard() {
   const { address, isConnected } = useAccount();
@@ -40,6 +40,27 @@ export default function PharmacyDashboard() {
     args: address && searchStripId ? [address, Number(searchStripId)] : undefined,
     query: { enabled: false }
   });
+
+  // Debug Reads
+  const { data: userData } = useReadContract({
+    abi: PharmacyABI,
+    address: CONTRACT_ADDRESSES.pharmacy,
+    functionName: "users",
+    args: address ? [address] : undefined,
+  });
+
+  const { data: debugStripData } = useReadContract({
+    abi: PharmacyABI,
+    address: CONTRACT_ADDRESSES.pharmacy,
+    functionName: "getStrip",
+    args: [1],
+    query: { enabled: true } // Auto-check Strip 1
+  });
+
+  // Role 4 is Pharmacy
+  const isAuthorized = userData && Number(userData[1]) === 4 && userData[3];
+  const registeredRole = userData ? userData[1].toString() : "Unknown";
+  const stripOneExists = debugStripData && debugStripData[1] !== 0n; // batchId != 0
 
   // Actions
   const handleReceiveStock = async () => {
@@ -120,14 +141,44 @@ export default function PharmacyDashboard() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab.id
-                    ? "bg-electric-blue text-white shadow-lg shadow-electric-blue/20"
-                    : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
+                  ? "bg-electric-blue text-white shadow-lg shadow-electric-blue/20"
+                  : "bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white"
                   }`}
               >
                 <tab.icon className="w-4 h-4" />
                 {tab.label}
               </button>
             ))}
+          </div>
+
+
+          {/* 🔍 DEBUG INFO CARD */}
+          <div className="bg-space-blue-800 p-4 rounded-xl border border-white/10 text-sm">
+            <h4 className="font-bold text-gray-300 mb-2 uppercase tracking-wide">🔍 Debug Info</h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-gray-500">Wallet Authorization</p>
+                <p className={`font-mono font-bold ${isAuthorized ? "text-green-400" : "text-red-400"}`}>
+                  {isAuthorized ? "✅ Authorized (Role: Pharmacy)" : `❌ NOT AUTHORIZED (Role ID: ${registeredRole})`}
+                </p>
+              </div>
+              <div>
+                <p className="text-gray-500">Strip ID #1 Existence</p>
+                <p className={`font-mono font-bold ${stripOneExists ? "text-green-400" : "text-red-400"}`}>
+                  {stripOneExists ? "✅ Exists on Chain" : "❌ Does Not Exist (Manufacturer step missed?)"}
+                </p>
+              </div>
+            </div>
+            {!isAuthorized && (
+              <p className="mt-2 text-xs text-yellow-400">
+                ⚠️ Go to Admin Dashboard &rarr; Register <strong>{address?.slice(0, 6)}...{address?.slice(-4)}</strong> as Pharmacy.
+              </p>
+            )}
+            {!stripOneExists && (
+              <p className="mt-2 text-xs text-yellow-400">
+                ⚠️ Go to Manufacturer Dashboard &rarr; Create Batch 1 &rarr; Add Strip 1.
+              </p>
+            )}
           </div>
 
           {/* 🔹 RECEIVE TAB */}

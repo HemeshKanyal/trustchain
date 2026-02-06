@@ -1,0 +1,1595 @@
+[
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_batchId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_hash",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_composition",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_expiry",
+				"type": "uint256"
+			}
+		],
+		"name": "addStrip",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_license",
+				"type": "string"
+			}
+		],
+		"name": "applyAsDoctor",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [],
+		"name": "AlreadyRegistered",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "BatchMismatch",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "InsufficientStock",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "InvalidBatch",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "InvalidStrip",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "PrescriptionInvalid",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "PrescriptionUsed",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "TransitNotActive",
+		"type": "error"
+	},
+	{
+		"inputs": [],
+		"name": "Unauthorized",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "enum TrustChainUnified.Role",
+				"name": "required",
+				"type": "uint8"
+			}
+		],
+		"name": "UnauthorizedRole",
+		"type": "error"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "manufacturer",
+				"type": "address"
+			}
+		],
+		"name": "BatchCreated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			}
+		],
+		"name": "BatchRecalled",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			}
+		],
+		"name": "BatchUpdated",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			}
+		],
+		"name": "cancelPrescription",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "transitId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "location",
+				"type": "string"
+			}
+		],
+		"name": "CheckpointRecorded",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_transitId",
+				"type": "uint256"
+			}
+		],
+		"name": "completeTransit",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_name",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_quantity",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_expiry",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_hash",
+				"type": "string"
+			}
+		],
+		"name": "createBatch",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_patient",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "_medsHash",
+				"type": "string"
+			}
+		],
+		"name": "createPrescription",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_prescriptionId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_stripId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_quantity",
+				"type": "uint256"
+			}
+		],
+		"name": "dispenseStrip",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_patient",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_stripId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_quantity",
+				"type": "uint256"
+			}
+		],
+		"name": "dispenseWithoutPrescription",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "transitId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "int256",
+				"name": "temperature",
+				"type": "int256"
+			},
+			{
+				"indexed": false,
+				"internalType": "int256",
+				"name": "humidity",
+				"type": "int256"
+			}
+		],
+		"name": "IoTDataLogged",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_transitId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "int256",
+				"name": "_temperature",
+				"type": "int256"
+			},
+			{
+				"internalType": "int256",
+				"name": "_humidity",
+				"type": "int256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_timestamp",
+				"type": "uint256"
+			}
+		],
+		"name": "logData",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "stripId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "qty",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			}
+		],
+		"name": "MedicineDispensed",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "stripId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "qty",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "reason",
+				"type": "string"
+			}
+		],
+		"name": "MedicineReturned",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			}
+		],
+		"name": "PrescriptionCancelled",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "patient",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "doctor",
+				"type": "address"
+			}
+		],
+		"name": "PrescriptionCreated",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_batchId",
+				"type": "uint256"
+			}
+		],
+		"name": "recallBatch",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_batchId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_stripId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_quantity",
+				"type": "uint256"
+			}
+		],
+		"name": "receiveFromDistributor",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_batchId",
+				"type": "uint256"
+			}
+		],
+		"name": "receiveFromManufacturer",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_transitId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_location",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_metadata",
+				"type": "string"
+			}
+		],
+		"name": "recordCheckpoint",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_name",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_age",
+				"type": "uint256"
+			}
+		],
+		"name": "registerPatient",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_wallet",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "_name",
+				"type": "string"
+			},
+			{
+				"internalType": "enum TrustChainUnified.Role",
+				"name": "_role",
+				"type": "uint8"
+			},
+			{
+				"internalType": "string",
+				"name": "_location",
+				"type": "string"
+			}
+		],
+		"name": "registerUser",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_stripId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_quantity",
+				"type": "uint256"
+			}
+		],
+		"name": "returnMedicine",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_stripId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_quantity",
+				"type": "uint256"
+			}
+		],
+		"name": "returnStock",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_wallet",
+				"type": "address"
+			}
+		],
+		"name": "revokeUser",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_batchId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "_recipient",
+				"type": "address"
+			}
+		],
+		"name": "startTransit",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "batchId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "stripId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "qty",
+				"type": "uint256"
+			}
+		],
+		"name": "StockReceived",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "batchId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "composition",
+				"type": "string"
+			}
+		],
+		"name": "StripAdded",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			}
+		],
+		"name": "TransitCompleted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "batchId",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			}
+		],
+		"name": "TransitStarted",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_batchId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "_name",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_expiry",
+				"type": "uint256"
+			}
+		],
+		"name": "updateBatch",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "_name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "_license",
+				"type": "string"
+			}
+		],
+		"name": "updateDoctorDetails",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "wallet",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"indexed": false,
+				"internalType": "enum TrustChainUnified.Role",
+				"name": "role",
+				"type": "uint8"
+			}
+		],
+		"name": "UserRegistered",
+		"type": "event"
+	},
+	{
+		"inputs": [],
+		"name": "batchCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "batches",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "quantity",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "manufactureDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "expiryDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "manufacturer",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "batchHash",
+				"type": "string"
+			},
+			{
+				"internalType": "bool",
+				"name": "recalled",
+				"type": "bool"
+			},
+			{
+				"internalType": "address",
+				"name": "currentHandler",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "doctors",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "license",
+				"type": "string"
+			},
+			{
+				"internalType": "bool",
+				"name": "isApproved",
+				"type": "bool"
+			},
+			{
+				"internalType": "address",
+				"name": "wallet",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			}
+		],
+		"name": "getBatch",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "quantity",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "expiryDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "manufacturer",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "recalled",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_transitId",
+				"type": "uint256"
+			}
+		],
+		"name": "getCheckpointCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_doctor",
+				"type": "address"
+			}
+		],
+		"name": "getDoctor",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "license",
+				"type": "string"
+			},
+			{
+				"internalType": "bool",
+				"name": "isApproved",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_transitId",
+				"type": "uint256"
+			}
+		],
+		"name": "getLogs",
+		"outputs": [
+			{
+				"components": [
+					{
+						"internalType": "uint256",
+						"name": "transitId",
+						"type": "uint256"
+					},
+					{
+						"internalType": "int256",
+						"name": "temperature",
+						"type": "int256"
+					},
+					{
+						"internalType": "int256",
+						"name": "humidity",
+						"type": "int256"
+					},
+					{
+						"internalType": "uint256",
+						"name": "timestamp",
+						"type": "uint256"
+					}
+				],
+				"internalType": "struct TrustChainUnified.IoTLog[]",
+				"name": "",
+				"type": "tuple[]"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			}
+		],
+		"name": "getPrescription",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "patient",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "doctor",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "medicineListHash",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "createdAt",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "dispensed",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "cancelled",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_pharmacy",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_stripId",
+				"type": "uint256"
+			}
+		],
+		"name": "getStock",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "availableQuantity",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "returnedQuantity",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "batchId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "stripId",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			}
+		],
+		"name": "getStrip",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "composition",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "batchId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "expiryDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "stripHash",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			}
+		],
+		"name": "getTransit",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "batchId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "distributor",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "recipient",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "startTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "endTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "inTransit",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "iotLogs",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "transitId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "int256",
+				"name": "temperature",
+				"type": "int256"
+			},
+			{
+				"internalType": "int256",
+				"name": "humidity",
+				"type": "int256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "_doctor",
+				"type": "address"
+			}
+		],
+		"name": "isApprovedDoctor",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_id",
+				"type": "uint256"
+			}
+		],
+		"name": "isPrescriptionValid",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "pharmacyStock",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "prescriptionCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "prescriptions",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "patient",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "doctor",
+				"type": "address"
+			},
+			{
+				"internalType": "string",
+				"name": "medicineListHash",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "createdAt",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "dispensed",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "cancelled",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "stripCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "strips",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "batchId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "composition",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "expiryDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "stripHash",
+				"type": "string"
+			},
+			{
+				"internalType": "address",
+				"name": "currentHandler",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isSold",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "isUsed",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "transitCheckpoints",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "transitId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "string",
+				"name": "location",
+				"type": "string"
+			},
+			{
+				"internalType": "string",
+				"name": "metadata",
+				"type": "string"
+			},
+			{
+				"internalType": "uint256",
+				"name": "timestamp",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "transitCount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"name": "transits",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "id",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "batchId",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "distributor",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "recipient",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "startTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "endTime",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "inTransit",
+				"type": "bool"
+			},
+			{
+				"internalType": "bool",
+				"name": "isCompleted",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "users",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "name",
+				"type": "string"
+			},
+			{
+				"internalType": "enum TrustChainUnified.Role",
+				"name": "role",
+				"type": "uint8"
+			},
+			{
+				"internalType": "address",
+				"name": "wallet",
+				"type": "address"
+			},
+			{
+				"internalType": "bool",
+				"name": "isRegistered",
+				"type": "bool"
+			},
+			{
+				"internalType": "string",
+				"name": "location",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_stripId",
+				"type": "uint256"
+			}
+		],
+		"name": "verifyStrip",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "manufacturer",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "expiryDate",
+				"type": "uint256"
+			},
+			{
+				"internalType": "bool",
+				"name": "isSold",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
