@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useAccount, useWriteContract, useReadContract } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import IoTABI from "../../contracts-data/IoTTracker.json";
-import { CONTRACT_ADDRESSES } from "../../contracts/addresses";
+import { CONTRACT_ADDRESSES } from "../../contracts-data/addresses";
 import {
   LineChart,
   Line,
