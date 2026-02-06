@@ -15,7 +15,7 @@
     "ethers": "^6.15.0",
     "framer-motion": "^12.31.0",
     "lucide-react": "^0.563.0",
-    "next": "15.5.3",
+    "next": "^16.1.6",
     "pino-pretty": "^13.1.1",
     "postcss": "^8.5.6",
     "react": "19.1.0",
@@ -28,7 +28,7 @@
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
     "eslint": "^9",
-    "eslint-config-next": "15.5.3",
+    "eslint-config-next": "^16.1.6",
     "tailwindcss": "^4.1.13"
   }
 }
