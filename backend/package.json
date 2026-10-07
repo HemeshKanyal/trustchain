@@ -1,0 +1,23 @@
+{
+  "name": "trustchain-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "TrustChain IoT ingest, relayer, chain indexer and alerts API",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "abi": "node scripts/export-abis.js",
+    "emulator": "node scripts/emulator.js",
+    "test": "node --test \"test/*.test.js\"",
+    "sim": "node sim/index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "viem": "^2.57.1"
+  }
+}
