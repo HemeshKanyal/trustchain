@@ -1,86 +1,50 @@
-## 📦 TrustChain
+# TrustChain
 
-TrustChain is a blockchain-based system for securing and verifying medicines.
-It combines Solidity smart contracts, React frontend, Node.js backend, and an AI verification module to ensure transparency, authenticity, and trust in the medical supply chain.
+Medicines tracked from factory to patient: **blockchain custody**, **IoT cold-chain smart boxes**, and **targeted recalls**.
+Story: https://trustchain.hemeshkanyal.com
 
-## 🚀 Features
+```
+ ESP32 smart box ──signed reports──▶ backend (verify, store, relay) ──▶ ColdChainMonitor ──breach──▶ quarantine
+                                         │  indexer + alerts                                         │
+ Next.js app (all roles + public verify) ◀──────── reads / writes ────────▶ TrustChain (custody, strips, Rx, recalls)
+```
 
-✅ Medicine Registry on Ethereum (Solidity smart contracts).
+| Folder | What |
+|---|---|
+| [`blockchain/`](blockchain) | Foundry project: `TrustChain` + `ColdChainMonitor` contracts, tests, deploy and demo scripts |
+| [`backend/`](backend) | Node service: telemetry ingest + relayer, chain indexer, alerts (incl. who is affected by a recall), device emulator, journey test |
+| [`iot/`](iot) | ESP32 firmware (RC522, DHT22, NEO-6M, lid switch); signs reports on-device |
+| [`frontend/trustchain-frontend/`](frontend/trustchain-frontend) | Next.js app for admins, manufacturers, distributors, pharmacies, doctors and patients |
 
-✅ Frontend (React) for interaction with users.
+## Quick start (local chain)
 
-✅ Backend (Node.js) for optional APIs
+```bash
+# 1. chain + contracts + demo data
+anvil
+cd blockchain && forge script script/Deploy.s.sol --rpc-url http://127.0.0.1:8545 \
+  --private-key 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 --broadcast
+forge script script/SeedDemo.s.sol --rpc-url http://127.0.0.1:8545 --broadcast
 
-✅ AI module (Python) for expiry & authenticity verification.
+# 2. backend
+cd ../backend && npm install && cp .env.example .env   # set RELAYER_PRIVATE_KEY (any anvil key)
+npm start
 
-✅ Dockerized setup for easy installation on any device.
+# 3. frontend
+cd ../frontend/trustchain-frontend && npm install && npm run sync && npm run dev
+```
 
-## ⚡ Installation & Setup
- 1. Clone Repository
-git clone https://github.com/<your-username>/TrustChain.git
-cd TrustChain
+Open http://localhost:3000 and use the **Dev account** picker to act as each role.
+No hardware? `cd backend && npm run emulator -- --scenario heat` plays a smart box.
 
-2. Install Docker
+## Tests
 
-Windows/Mac: Download Docker Desktop
+| | Command |
+|---|---|
+| Contracts (unit, fuzz, invariant) | `cd blockchain && forge test` |
+| Backend | `cd backend && npm test` |
+| Chain journey (factory → patient, with a smart box) | `cd backend && node scripts/journey.js 0x<box>` |
+| UI journey (headless browser, every role) | `cd frontend/trustchain-frontend && npm run e2e` |
 
-Linux (Ubuntu/Debian):
+## Deploy to Sepolia
 
-sudo apt update
-sudo apt install docker.io docker-compose -y
-sudo systemctl enable docker
-sudo systemctl start docker
-
-
-Check versions:
-
-docker --version
-docker-compose --version
-
-3. Run with Docker
-docker-compose up --build
-
-4. Access Services
-
-Frontend (React): http://localhost:3000
-
-Backend (Node.js): http://localhost:5000
-
-AI Module (Python): Runs inside its container
-
-Contracts: Deploy via scripts/deploy.js
-
-## 👨‍💻 Development Workflow
-
-Create a new branch:
-
-git checkout -b feature-branch
-
-
-Make changes & commit:
-
-git add .
-git commit -m "Your commit message"
-
-
-Push branch:
-
-git push origin feature-branch
-
-
-Open a Pull Request on GitHub.
-
-## 🤝 Team Members
-
-👤 [Member 1](https://github.com/HemeshKanyal) 
-
-👤 [Member 2](https://github.com/Sanchay0123)  
-
-👤 [Member 3](https://github.com/Priyanshu4-4)  
-
-👤 [Member 4](https://github.com/SAMYAALI-22)  
-
-👤 [Member 5](https://github.com/sharmanaman20055-del)  
-
-👤 [Member 6](https://github.com/Sachit315)  
-
+See [`blockchain/README.md`](blockchain/README.md). Then set `DEPLOYMENT=../blockchain/deployments/11155111.json` for the backend and `NEXT_PUBLIC_CHAIN_ID=11155111` + `npm run sync` for the frontend.
