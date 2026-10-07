@@ -1,0 +1,7 @@
+{
+  "name": "ethsig",
+  "version": "0.1.0",
+  "description": "Keccak-256, EIP-712 TrustChain report encoding and secp256k1 signing for ESP32",
+  "frameworks": "arduino",
+  "platforms": "espressif32"
+}

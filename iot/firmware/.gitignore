@@ -1,0 +1,5 @@
+.pio/
+.vscode/
+src/tracker/secrets.h
+serial.log
+__pycache__/
