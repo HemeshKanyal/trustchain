@@ -1,21 +1,22 @@
-import { Inter, Outfit } from "next/font/google"; // ✅ New Fonts
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import AppShell from "@/components/AppShell";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 
 export const metadata = {
-  title: "TrustChain | Secure Pharma Supply Chain",
-  description: "Blockchain-based pharmaceutical tracking system",
+  title: { default: "TrustChain: know your medicine is real", template: "%s · TrustChain" },
+  description: "Medicines tracked from factory to patient on the blockchain, with IoT cold-chain monitoring and instant targeted recalls.",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      {/* ✅ suppress hydration warning to avoid Grammarly / extension issues */}
-      <body suppressHydrationWarning={true} className={`${inter.variable} ${outfit.variable} font-sans bg-space-blue-900 text-white antialiased`}>
-        <Providers>{children}</Providers>
+    <html lang="en" className={inter.variable}>
+      <body suppressHydrationWarning className="font-sans">
+        <Providers>
+          <AppShell>{children}</AppShell>
+        </Providers>
       </body>
     </html>
   );

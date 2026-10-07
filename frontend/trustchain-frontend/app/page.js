@@ -1,262 +1,149 @@
 "use client";
-
-import { useEffect, useState } from "react";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { motion } from "framer-motion";
-import { ShieldCheck, Pill, Truck, Search, Activity, User } from "lucide-react";
+import { useState } from "react";
 import Link from "next/link";
-import { useReadContract } from "wagmi";
-import AdminABI from "../contracts-data/Admin.json";
-import { CONTRACT_ADDRESSES } from "../contracts-data/addresses";
+import { useRouter } from "next/navigation";
+import { ArrowRight } from "lucide-react";
+import { codeHashOf, parseStripCode } from "@/lib/qr";
+import { useApi, useNames, useParticipants } from "@/lib/hooks";
+import { describe, toneOf } from "@/lib/activity";
+import { locate } from "@/lib/geo";
+import { ROLE_META, ROLE_ORDER } from "@/lib/roles";
+import { dateTime } from "@/lib/format";
+import Globe from "@/components/fx/Globe";
+import SmartBox from "@/components/fx/SmartBox";
+import { ReceiptArt, StripArt, VerdictArt } from "@/components/fx/Illustrations";
+import QrScanner from "@/components/QrScanner";
+import { CountUp, Eyebrow, Reveal } from "@/components/fx/motion";
+import { Button, Input, cx } from "@/components/ui";
 
-export default function LandingPage() {
-  const [mounted, setMounted] = useState(false);
-  const [checkAddress, setCheckAddress] = useState("");
-  const [isScrolled, setIsScrolled] = useState(false);
+export default function Home() {
+  const router = useRouter();
+  const [code, setCode] = useState("");
+  const [error, setError] = useState(null);
+  const people = useParticipants();
+  const ships = useApi("/api/shipments?status=InTransit", { refetchInterval: 20000 });
+  const activity = useApi("/api/activity?limit=24", { refetchInterval: 15000 });
+  const stats = useApi("/api/stats", { refetchInterval: 20000 });
+  const name = useNames();
 
-  useEffect(() => {
-    setMounted(true);
-    const handleScroll = () => setIsScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const where = Object.fromEntries((people.data ?? []).map((p) => [p.address.toLowerCase(), locate(p.location)]));
+  const markers = Object.values(where).filter(Boolean).map((location) => ({ location, size: 0.05 }));
+  const arcs = (ships.data ?? [])
+    .map((s) => ({ from: where[s.from_addr.toLowerCase()], to: where[s.to_addr.toLowerCase()], tone: s.breached ? "rose" : "teal" }))
+    .filter((a) => a.from && a.to);
+  for (const s of ships.data ?? []) if (s.breached && where[s.to_addr.toLowerCase()]) markers.push({ location: where[s.to_addr.toLowerCase()], size: 0.09, tone: "rose" });
 
-  // Verification Logic
-  // Verification Logic: Check if user is a registered Manufacturer (Role index 2)
-  const { data: userProfile, isLoading, error } = useReadContract({
-    abi: AdminABI,
-    address: CONTRACT_ADDRESSES.admin,
-    functionName: "users",
-    args: [
-      checkAddress && checkAddress.length === 42
-        ? checkAddress.trim()
-        : "0x0000000000000000000000000000000000000000",
-    ],
-  });
+  function check(text) {
+    const secret = parseStripCode(text);
+    if (!secret) return setError("That's not a TrustChain code. It starts with TC1:");
+    router.push(`/verify?h=${codeHashOf(secret)}`);
+  }
 
-  // userProfile returns [name, role, wallet, isRegistered, location]
-  // Role enum: None(0), Admin(1), Manufacturer(2), Distributor(3), Pharmacy(4), Doctor(5), Patient(6)
-  const isApproved = userProfile && Number(userProfile[1]) === 2 && userProfile[3];
-
-  if (!mounted) return null;
+  const latest = (n) => (activity.data ?? []).find((e) => e.name === n);
+  const chapters = [
+    { n: 1, title: "Made.", body: "A licensed manufacturer mints the batch on the blockchain and prints a secret QR code on every strip.", ex: latest("BatchCreated") },
+    { n: 2, title: "Moved.", body: "It travels sealed in a smart box that signs temperature, humidity, GPS and lid status. A breach freezes the batch.", ex: latest("ShipmentCreated") },
+    { n: 3, title: "Sold.", body: "The pharmacy scans each strip at the counter. Prescription-only medicine needs a doctor's on-chain prescription.", ex: latest("StripDispensed") },
+    { n: 4, title: "Verified.", body: "Anyone scans the strip: genuine, already sold (a copied code), recalled, on hold or expired, in a second.", ex: null },
+  ];
 
   return (
-    <div className="min-h-screen bg-space-blue-900 text-white font-sans selection:bg-electric-blue selection:text-white overflow-hidden">
-
-      {/* 🔹 Navigation Bar */}
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? "bg-space-blue-900/80 backdrop-blur-md shadow-lg" : "bg-transparent"
-          }`}
-      >
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-electric-blue to-vivid-purple rounded-xl flex items-center justify-center shadow-lg shadow-electric-blue/20">
-              <ShieldCheck className="text-white w-6 h-6" />
-            </div>
-            <span className="text-2xl font-bold font-heading tracking-tight">TrustChain</span>
-          </div>
-
-          <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-300">
-            <a href="#features" className="hover:text-white transition-colors">Features</a>
-            <a href="#verify" className="hover:text-white transition-colors">Verify</a>
-            <a href="#network" className="hover:text-white transition-colors">Network</a>
-          </div>
-
-          <ConnectButton.Custom>
-            {({ account, chain, openAccountModal, openConnectModal, mounted }) => {
-              const ready = mounted;
-              const connected = ready && account && chain;
-              return (
-                <div
-                  {...(!ready && {
-                    "aria-hidden": true,
-                    style: { opacity: 0, pointerEvents: "none", userSelect: "none" },
-                  })}
-                >
-                  {(() => {
-                    if (!connected) {
-                      return (
-                        <button onClick={openConnectModal} className="px-5 py-2.5 bg-electric-blue hover:bg-blue-600 rounded-lg text-white font-medium transition-all shadow-lg shadow-blue-500/25">
-                          Connect Wallet
-                        </button>
-                      );
-                    }
-                    return (
-                      <button onClick={openAccountModal} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 px-4 py-2 rounded-lg backdrop-blur-md border border-white/5 transition-all">
-                        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                        {account.displayName}
-                      </button>
-                    );
-                  })()}
-                </div>
-              );
-            }}
-          </ConnectButton.Custom>
-        </div>
-      </nav>
-
-      {/* 🔹 Hero Section */}
-      <section className="relative pt-32 pb-20 px-6 max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
-        <div className="relative z-10 md:w-1/2 space-y-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-vivid-purple/10 border border-vivid-purple/20 text-vivid-purple text-sm font-medium mb-6">
-              <span className="flex h-2 w-2 rounded-full bg-vivid-purple"></span>
-              Live on Chain (Hardhat/Local)
-            </div>
-            <h1 className="text-5xl md:text-7xl font-bold font-heading leading-tight mb-6">
-              The Future of <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-electric-blue to-vivid-purple">
-                Pharma Trust
-              </span>
-            </h1>
-            <p className="text-lg text-gray-400 max-w-lg leading-relaxed">
-              Eliminate counterfeits with an immutable, blockchain-powered supply chain. Track medicine from manufacturer to patient in real-time.
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="flex flex-col sm:flex-row gap-4"
-          >
-            <Link href="/patient" className="px-8 py-4 bg-gradient-to-r from-electric-blue to-blue-600 text-white font-bold rounded-xl hover:shadow-lg hover:shadow-blue-500/25 transition-all text-center">
-              I am a Patient
-            </Link>
-            <a href="#network" className="px-8 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-xl hover:bg-white/10 transition-all text-center">
-              Supply Chain Partner
-            </a>
-          </motion.div>
-        </div>
-
-        {/* 3D/Graphic Placeholder - Using CSS Shapes for now */}
-        <div className="md:w-1/2 relative h-[500px] w-full flex items-center justify-center">
-          <div className="absolute inset-0 bg-gradient-to-tr from-electric-blue/20 to-vivid-purple/20 rounded-full blur-[100px]" />
-          <motion.div
-            animate={{ y: [0, -20, 0] }}
-            transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-            className="relative z-10 glass p-8 rounded-3xl border border-white/20 w-80 shadow-2xl"
-          >
-            <div className="flex items-center justify-between mb-8">
-              <div className="h-3 w-20 bg-gray-600/50 rounded-full" />
-              <div className="h-8 w-8 rounded-full bg-green-500/20 flex items-center justify-center">
-                <ShieldCheck className="w-4 h-4 text-green-400" />
-              </div>
-            </div>
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-white/5 border border-white/5">
-                  <div className="w-10 h-10 rounded-lg bg-electric-blue/20 flex items-center justify-center">
-                    <Pill className="text-electric-blue w-5 h-5" />
-                  </div>
-                  <div>
-                    <div className="h-2 w-24 bg-gray-500/50 rounded mb-2" />
-                    <div className="h-2 w-16 bg-gray-600/50 rounded" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* 🔹 How it Works */}
-      <section id="network" className="py-20 px-6 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold font-heading mb-4">
-            Select Your Role
-          </h2>
-          <p className="text-gray-400">Access your designated supply chain portal.</p>
-        </div>
-
-        <div className="grid md:grid-cols-4 gap-6">
-          {[
-            { title: "Manufacturer", icon: Activity, desc: "Create & Tag Batches", link: "/manufacturer" },
-            { title: "Distributor", icon: Truck, desc: "Secure Transport", link: "/distributor" },
-            { title: "Pharmacy", icon: ShieldCheck, desc: "Verify & Dispense", link: "/pharmacy" },
-            { title: "Doctor", icon: User, desc: "Prescribe & Monitor", link: "/doctor" },
-          ].map((item, idx) => (
-            <Link key={idx} href={item.link} className="glass p-6 rounded-2xl flex flex-col items-center text-center hover:bg-white/10 hover:scale-105 transition-all cursor-pointer border border-white/5 group">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-gray-800 to-black flex items-center justify-center mb-6 shadow-inner border border-white/5 group-hover:border-electric-blue/50 transition-colors">
-                <item.icon className="w-8 h-8 text-electric-blue group-hover:text-white transition-colors" />
-              </div>
-              <h3 className="text-xl font-bold mb-2">{item.title}</h3>
-              <p className="text-gray-400 text-sm group-hover:text-gray-300">{item.desc}</p>
-            </Link>
-          ))}
-        </div>
-
-        {/* Admin Link (Discrete) */}
-        <div className="mt-12 text-center">
-          <Link href="/admin" className="text-xs text-gray-600 hover:text-gray-400 transition-colors">
-            Authorized Admin Access
+    <div className="-mt-8 sm:-mt-10">
+      <section className="grid items-center gap-10 py-8 sm:py-12 lg:grid-cols-2 lg:py-20 [&>*]:min-w-0">
+        <Reveal>
+          <Eyebrow n={1}>Know your medicine</Eyebrow>
+          <h1 className="display mt-6 text-5xl sm:text-7xl">
+            Is it <span className="text-brand">real</span>?<br />
+            Ask the <span className="text-brand">chain.</span>
+          </h1>
+          <p className="mt-6 max-w-lg text-lg text-slate-300">
+            Up to 1 in 10 medicines in low- and middle-income countries is substandard or falsified. TrustChain tracks every strip from the factory to your hand.
+          </p>
+          <form className="mt-8 flex max-w-xl flex-col gap-2 sm:flex-row" onSubmit={(e) => { e.preventDefault(); check(code); }}>
+            <Input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Paste the code from your strip (TC1:…)" className="h-12 font-mono" aria-label="Strip code" />
+            <Button type="submit" size="lg" className="h-12">Verify</Button>
+            <QrScanner onResult={check} label="Scan" />
+          </form>
+          {error && <p className="mt-2 text-sm text-rose-300">{error}</p>}
+          <Link href="/portal" className="mt-6 inline-flex items-center gap-1.5 text-sm text-slate-300 hover:text-white">
+            Part of the supply chain? Open your portal <ArrowRight className="h-4 w-4" />
           </Link>
+        </Reveal>
+        <div className="flex justify-center">
+          <Globe markers={markers} arcs={arcs} size={540} />
         </div>
       </section>
 
-      {/* 🔹 Verification Tool */}
-      <section id="verify" className="py-20 px-6 max-w-4xl mx-auto">
-        <div className="glass p-8 md:p-12 rounded-3xl border border-white/10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-32 bg-electric-blue/10 bg-blur-[100px] rounded-full pointer-events-none" />
-
-          <div className="text-center mb-10">
-            <h2 className="text-3xl font-bold font-heading mb-4">Verify Authenticity</h2>
-            <p className="text-gray-400">Enter a manufacturer address to check their approval status on the blockchain.</p>
+      {/* live ticker */}
+      {activity.data?.length > 0 && (
+        <div className="relative -mx-4 overflow-hidden border-y border-white/[0.06] bg-black/20 py-3 sm:-mx-6" aria-label="Live network activity">
+          <div className="ticker-track flex w-max gap-10 whitespace-nowrap px-6 text-sm">
+            {[...activity.data, ...activity.data].map((e, i) => (
+              <span key={i} className="flex items-center gap-2 text-slate-300">
+                <span className={cx("h-1.5 w-1.5 rounded-full", toneOf(e) === "rose" ? "bg-danger" : "bg-brand")} />
+                {describe(e, name)}
+                <span className="text-slate-500">{dateTime(e.timestamp)}</span>
+              </span>
+            ))}
           </div>
+        </div>
+      )}
 
-          <div className="flex flex-col md:flex-row gap-4 max-w-xl mx-auto">
-            <div className="relative flex-grow">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="0x..."
-                value={checkAddress}
-                onChange={(e) => setCheckAddress(e.target.value)}
-                className="w-full bg-space-blue-800 text-white pl-12 pr-4 py-4 rounded-xl border border-gray-700 focus:border-electric-blue focus:ring-1 focus:ring-electric-blue outline-none transition-all placeholder:text-gray-600 font-mono"
-              />
+      {stats.data && (
+        <section className="mx-auto mt-16 grid max-w-5xl grid-cols-2 gap-3 sm:grid-cols-4">
+          {[["Batches on-chain", stats.data.batches], ["Shipments tracked", stats.data.shipments], ["Signed box reports", stats.data.telemetryReports], ["Strips dispensed", stats.data.stripsDispensed]].map(([l, v]) => (
+            <div key={l} className="card px-4 py-5 text-center">
+              <div className="text-4xl font-bold text-white"><CountUp value={v} /></div>
+              <div className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-400">{l}</div>
             </div>
-          </div>
+          ))}
+        </section>
+      )}
 
-          <div className="mt-8 flex justify-center">
-            {checkAddress && checkAddress.length === 42 ? (
-              isLoading ? (
-                <div className="flex items-center gap-2 text-electric-blue animate-pulse">
-                  <Activity className="w-5 h-5" /> verifyng on-chain...
+      {/* chapters */}
+      <section className="mt-24 space-y-24">
+        {chapters.map((c, i) => (
+          <Reveal key={c.n} className={cx("grid items-center gap-10 lg:grid-cols-2", i % 2 && "lg:[&>*:first-child]:order-2")}>
+            <div>
+              <Eyebrow n={c.n + 1}>{["Made", "Moved", "Sold", "Verified"][i]}</Eyebrow>
+              <h2 className="display mt-5 text-5xl sm:text-6xl">{c.title}</h2>
+              <p className="mt-5 max-w-md text-lg text-slate-300">{c.body}</p>
+              {c.ex && (
+                <div className="card mt-6 inline-flex items-center gap-3 px-4 py-3 text-sm text-slate-200">
+                  <span className="h-2 w-2 animate-pulse rounded-full bg-brand" />
+                  Latest: {describe(c.ex, name)} · {dateTime(c.ex.timestamp)}
                 </div>
-              ) : (
-                <div className={`flex items-center gap-3 px-6 py-3 rounded-full border ${isApproved ? "bg-green-500/10 border-green-500/50 text-green-400" : "bg-red-500/10 border-red-500/50 text-red-400"}`}>
-                  {isApproved ? (
-                    <>
-                      <ShieldCheck className="w-5 h-5" />
-                      <span className="font-bold">Authorized Manufacturer</span>
-                    </>
-                  ) : (
-                    <>
-                      <ShieldCheck className="w-5 h-5" />
-                      <span className="font-bold">Not Authorized / Unknown</span>
-                    </>
-                  )}
-                </div>
-              )
-            ) : (
-              <p className="text-sm text-gray-600">Enter a valid Ethereum address (42 characters)</p>
-            )}
-
-            {error && (
-              <p className="text-red-400 text-sm mt-4 text-center">Error connecting to network: {error.message}</p>
-            )}
-          </div>
-        </div>
+              )}
+            </div>
+            <div className="flex justify-center">
+              {[<StripArt key="a" />, <SmartBox key="b" state="sealed" size={300} />, <ReceiptArt key="c" />, <VerdictArt key="d" />][i]}
+            </div>
+          </Reveal>
+        ))}
       </section>
 
-      {/* 🔹 Footer */}
-      <footer className="py-10 border-t border-white/5 text-center text-gray-500 text-sm">
-        <p>&copy; {new Date().getFullYear()} TrustChain. Built for the future.</p>
-      </footer>
+      {/* portals */}
+      <section className="mt-28 pb-6">
+        <Reveal>
+          <Eyebrow n={6}>Portals</Eyebrow>
+          <h2 className="display mt-5 text-4xl sm:text-5xl">Who are you?</h2>
+        </Reveal>
+        <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {ROLE_ORDER.map((k) => {
+            const m = ROLE_META[k];
+            return (
+              <Link key={k} href={`/portal/${k}`} className="card card-hover group flex items-center gap-4 p-5">
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand/10 text-brand ring-1 ring-brand/25"><m.icon className="h-5 w-5" /></span>
+                <span className="flex-1">
+                  <span className="block font-semibold text-white">{m.title}</span>
+                  <span className="block text-xs text-slate-400">{m.blurb}</span>
+                </span>
+                <ArrowRight className="h-4 w-4 text-slate-500 transition group-hover:translate-x-1 group-hover:text-brand" />
+              </Link>
+            );
+          })}
+        </div>
+      </section>
     </div>
   );
 }

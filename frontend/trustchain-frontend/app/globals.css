@@ -1,37 +1,159 @@
 @import "tailwindcss";
-@config "../tailwind.config.js";
 
-/* Glassmorphism Utilities */
-@layer utilities {
-  .glass {
-    @apply bg-white/5 backdrop-blur-lg border border-white/10 shadow-lg;
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-ink-950: #04060d;
+  --color-ink-900: #080c18;
+  --color-ink-850: #0c1222;
+  --color-ink-800: #121a30;
+  --color-ink-700: #1b2642;
+
+  --color-brand: #2dd4bf;
+  --color-brand-strong: #14b8a6;
+  --color-brand-deep: #0f766e;
+  --color-ok: #34d399;
+  --color-warn: #fbbf24;
+  --color-danger: #f43f5e;
+  --color-info: #60a5fa;
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
   }
-
-  .glass-hover {
-    @apply hover:bg-white/10 transition-all duration-300;
+  html,
+  body {
+    /* decorative glows may spill past the edge; never let them widen the page on phones */
+    overflow-x: clip;
+  }
+  body {
+    @apply bg-ink-950 text-slate-200 antialiased;
+  }
+  /* Grid items default to min-width:auto, so a wide table or canvas widens the whole column; let them shrink and scroll inside. */
+  .grid > * {
+    min-width: 0;
+  }
+  ::selection {
+    @apply bg-brand/30 text-white;
+  }
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.025em;
+    font-weight: 800;
   }
 }
 
-/* Fix Web3Modal / RainbowKit not showing in Firefox */
-body {
-  overflow: auto !important;
-  /* ensure scrolling allowed */
-  background: radial-gradient(circle at top left, #1e293b, #0f172a);
+@layer components {
+  /* Glass panel (story site cards) */
+  .card {
+    @apply relative rounded-2xl border border-white/[0.08] bg-white/[0.035] shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6)] backdrop-blur-xl;
+  }
+  .card-hover {
+    @apply transition duration-300 hover:-translate-y-0.5 hover:border-brand/30 hover:bg-white/[0.06];
+  }
+  .input {
+    @apply w-full rounded-xl border border-white/10 bg-black/30 px-3.5 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-brand/60 focus:ring-2 focus:ring-brand/20 disabled:opacity-50;
+  }
+  .tbl {
+    @apply w-full text-left text-sm;
+  }
+  .tbl th {
+    @apply border-b border-white/[0.07] px-3 py-2.5 text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500;
+  }
+  .tbl td {
+    @apply border-b border-white/[0.04] px-3 py-3 align-middle;
+  }
+  .tbl tr:last-child td {
+    @apply border-b-0;
+  }
+  .display {
+    @apply font-extrabold text-white;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+  }
 }
 
-[data-rk] {
-  isolation: isolate;
-  /* fix stacking context issues */
-  z-index: 9999 !important;
-  /* force modal on top */
+/* ---------- nebula backdrop ---------- */
+.nebula {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: #04060d;
+}
+.nebula-blob {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(110px);
+  opacity: 0.55;
+  transition: background-color 1.2s ease;
+  animation: nebula-drift 38s ease-in-out infinite alternate;
+}
+.nebula-a { width: 60vmax; height: 60vmax; left: -15vmax; top: -20vmax; }
+.nebula-b { width: 50vmax; height: 50vmax; right: -18vmax; top: 10vh; animation-duration: 46s; opacity: 0.35; }
+.nebula-c { width: 55vmax; height: 55vmax; left: 20vw; bottom: -30vmax; animation-duration: 54s; opacity: 0.45; }
+.nebula-stars {
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  background-image: radial-gradient(1px 1px at 12% 18%, #fff8 50%, transparent 51%), radial-gradient(1px 1px at 67% 41%, #fff6 50%, transparent 51%),
+    radial-gradient(1px 1px at 38% 77%, #fff5 50%, transparent 51%), radial-gradient(1.5px 1.5px at 84% 12%, #fff7 50%, transparent 51%),
+    radial-gradient(1px 1px at 21% 58%, #fff4 50%, transparent 51%), radial-gradient(1px 1px at 92% 69%, #fff5 50%, transparent 51%);
+  background-size: 420px 420px;
+}
+.nebula-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, #04060dcc 100%);
+}
+@keyframes nebula-drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(6vw, 4vh, 0) scale(1.15); }
 }
 
-.web3modal-modal-lightbox {
-  position: fixed !important;
-  z-index: 99999 !important;
-  inset: 0 !important;
-  /* force it inside viewport */
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
+/* ---------- smart box ---------- */
+.smartbox-float { animation: box-float 6s ease-in-out infinite; }
+.smartbox-spin { animation: box-spin 2.4s linear infinite; }
+.smartbox-led { animation: led-pulse 2.2s ease-in-out infinite; }
+@keyframes box-float {
+  0%, 100% { transform: rotateX(-24deg) rotateY(-32deg) translateY(0); }
+  50% { transform: rotateX(-24deg) rotateY(-26deg) translateY(-8px); }
+}
+@keyframes box-spin {
+  from { transform: rotateX(-24deg) rotateY(0deg); }
+  to { transform: rotateX(-24deg) rotateY(360deg); }
+}
+@keyframes led-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+
+/* ---------- sealed-on-chain hexagon ---------- */
+.hex-seal path { stroke-dasharray: 80; stroke-dashoffset: 80; animation: hex-draw 0.7s ease-out forwards; }
+.hex-seal .tick { stroke-dasharray: 20; stroke-dashoffset: 20; animation: hex-draw 0.35s 0.55s ease-out forwards; }
+@keyframes hex-draw { to { stroke-dashoffset: 0; } }
+
+/* ---------- live ticker ---------- */
+.ticker-track { animation: ticker 60s linear infinite; }
+@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ---------- leaflet on dark ---------- */
+.leaflet-container { font-family: inherit; }
+/* filter each tile image, not the layer container (a filtered container escapes the map's clipping) */
+.tc-dark-tiles img.leaflet-tile { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.6); }
+.leaflet-tooltip { background: #0c1222; color: #e2e8f0; border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: none; }
+.leaflet-tooltip-top:before { border-top-color: #0c1222; }
+.leaflet-control-attribution { background: rgba(4, 6, 13, 0.7) !important; color: #64748b !important; }
+.leaflet-control-attribution a { color: #94a3b8 !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nebula-blob, .smartbox-float, .smartbox-spin, .smartbox-led, .ticker-track { animation: none !important; }
+}
+
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  .no-print, .nebula { display: none !important; }
 }
